@@ -41,6 +41,6 @@ export const WorktreeAdaptor: Adaptor = {
     headers.set("x-opencode-directory", config.directory)
 
     const request = new Request(url, { ...init, headers })
-    return Server.Default().fetch(request)
+    return Server.Default().app.fetch(request)
   },
 }
