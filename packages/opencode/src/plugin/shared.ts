@@ -1,7 +1,7 @@
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import semver from "semver"
-import { BunProc } from "@/bun"
+import { Npm } from "@/npm"
 import { Filesystem } from "@/util/filesystem"
 import { isRecord } from "@/util/record"
 
@@ -104,7 +104,7 @@ export async function checkPluginCompatibility(target: string, opencodeVersion: 
 
 export async function resolvePluginTarget(spec: string, parsed = parsePluginSpecifier(spec)) {
   if (isPathPluginSpec(spec)) return resolvePathPluginTarget(spec)
-  return BunProc.install(parsed.pkg, parsed.version)
+  return Npm.add(parsed.version === "latest" ? parsed.pkg : `${parsed.pkg}@${parsed.version}`)
 }
 
 export async function readPluginPackage(target: string) {

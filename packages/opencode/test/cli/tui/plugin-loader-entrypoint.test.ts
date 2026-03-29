@@ -4,7 +4,7 @@ import path from "path"
 import { tmpdir } from "../../fixture/fixture"
 import { createTuiPluginApi } from "../../fixture/tui-plugin"
 import { TuiConfig } from "../../../src/config/tui"
-import { BunProc } from "../../../src/bun"
+import { Npm } from "../../../src/npm"
 
 const { TuiPluginRuntime } = await import("../../../src/cli/cmd/tui/plugin/runtime")
 
@@ -51,7 +51,7 @@ test("loads npm tui plugin from package ./tui export", async () => {
   })
   const wait = spyOn(TuiConfig, "waitForDependencies").mockResolvedValue()
   const cwd = spyOn(process, "cwd").mockImplementation(() => tmp.path)
-  const install = spyOn(BunProc, "install").mockResolvedValue(tmp.extra.mod)
+  const install = spyOn(Npm, "add").mockResolvedValue(tmp.extra.mod)
 
   try {
     await TuiPluginRuntime.init(createTuiPluginApi())
@@ -113,7 +113,7 @@ test("rejects npm tui export that resolves outside plugin directory", async () =
   })
   const wait = spyOn(TuiConfig, "waitForDependencies").mockResolvedValue()
   const cwd = spyOn(process, "cwd").mockImplementation(() => tmp.path)
-  const install = spyOn(BunProc, "install").mockResolvedValue(tmp.extra.mod)
+  const install = spyOn(Npm, "add").mockResolvedValue(tmp.extra.mod)
 
   try {
     await TuiPluginRuntime.init(createTuiPluginApi())
@@ -172,7 +172,7 @@ test("rejects npm tui plugin that exports server and tui together", async () => 
   })
   const wait = spyOn(TuiConfig, "waitForDependencies").mockResolvedValue()
   const cwd = spyOn(process, "cwd").mockImplementation(() => tmp.path)
-  const install = spyOn(BunProc, "install").mockResolvedValue(tmp.extra.mod)
+  const install = spyOn(Npm, "add").mockResolvedValue(tmp.extra.mod)
 
   try {
     await TuiPluginRuntime.init(createTuiPluginApi())
