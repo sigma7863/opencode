@@ -12,6 +12,7 @@ import { zodToJsonSchema } from "zod-to-json-schema"
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
 import { WorkspaceRoutes } from "./workspace"
+import { PushRelay } from "../push-relay"
 
 export const ExperimentalRoutes = lazy(() =>
   new Hono()
@@ -266,6 +267,99 @@ export const ExperimentalRoutes = lazy(() =>
       }),
       async (c) => {
         return c.json(await MCP.resources())
+      },
+    )
+    .get(
+      "/push",
+      describeRoute({
+        summary: "Get push relay status",
+        description: "Get experimental push relay runtime status for this server.",
+        operationId: "experimental.push.status",
+        responses: {
+          200: {
+            description: "Push relay status",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    enabled: z.boolean(),
+                    relaySecretSet: z.boolean(),
+                  }),
+                ),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        return c.json(PushRelay.status())
+      },
+    )
+    .post(
+      "/push/test",
+      describeRoute({
+        summary: "Send test push event",
+        description: "Send a test push event through the experimental APN relay integration.",
+        operationId: "experimental.push.test",
+        responses: {
+          200: {
+            description: "Test event accepted",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    ok: z.boolean(),
+                    enabled: z.boolean(),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          secret: z.string(),
+          sessionID: z.string().optional(),
+          eventType: z.enum(["complete", "permission", "error"]).optional(),
+        }),
+      ),
+      async (c) => {
+        const body = c.req.valid("json")
+        const status = PushRelay.status()
+        if (!status.enabled) {
+          return c.json(
+            {
+              data: { enabled: false },
+              errors: [{ message: "Push relay is not enabled" }],
+              success: false,
+            },
+            400,
+          )
+        }
+
+        if (!PushRelay.auth(body.secret)) {
+          return c.json(
+            {
+              data: { enabled: true },
+              errors: [{ message: "Invalid push relay secret" }],
+              success: false,
+            },
+            400,
+          )
+        }
+
+        const ok = PushRelay.test({
+          type: body.eventType ?? "permission",
+          sessionID: body.sessionID ?? `test-${Date.now()}`,
+        })
+
+        return c.json({
+          ok,
+          enabled: true,
+        })
       },
     ),
 )

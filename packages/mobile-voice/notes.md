@@ -1,0 +1,1 @@
+- While the model is loading for the first time, there should be some fun little like onboarding sequence that you can go through that makes sure the model is automated properly.
